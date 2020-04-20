@@ -12,7 +12,7 @@ with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/c
 <img src="framework.png" width="900px" height="350px"/>
 
 ### Copied from LICENSE file (MIT License) for visibility:
-*Copyright for portions of project Style-AttnGAN are held by Tao Xu, 2018 as part of project AttnGAN. All other copyright for project Style-AttnGAN are held by Sidhartha Parhi, 2020. __All non-data files that have not been modified by Sidhartha Parhi will include the copyright notice "Copyright (c) 2018 Tao Xu" at the top of the file.__*
+*Copyright for portions of project Style-AttnGAN are held by Tao Xu, 2018 as part of project AttnGAN. All other copyright for project Style-AttnGAN are held by Sidhartha Parhi, 2020. __All non-data files that have not been modified by Sidhartha Parhi include the copyright notice "Copyright (c) 2018 Tao Xu" at the top of the file.__*
 
 --------------------------------------------------------------------------------
 
