@@ -77,20 +77,27 @@ def Block3x3_relu(in_planes, out_planes):
 
 
 class ResBlock(nn.Module):
-    def __init__(self, channel_num, ex = False, norm_type = 'batchnorm' ):
+    def __init__(self, channel_num, ex = False, norm_type = 'batchnorm', use_glu = True, bottle = False ):
         super(ResBlock, self).__init__()
-        if not ex:
-            conv1 = conv3x3(channel_num, channel_num * 2)
-            conv2 = conv3x3(channel_num, channel_num)
+        b = 2 if bottle else 1
+        if use_glu:
+            relu = GLU()
+            nf = channel_num * 2
         else:
-            conv1 = Conv2dEx( ni = channel_num, nf = channel_num * 2, ks = 3, stride = 1, padding = 1,
+            relu = nn.LeakyReLU( negative_slope = .2 )
+            nf = channel_num        
+        if not ex:
+            conv1 = conv3x3(channel_num, b*nf)
+            conv2 = conv3x3(b*channel_num, channel_num)
+        else:
+            conv1 = Conv2dEx( ni = channel_num, nf = b*nf, ks = 3, stride = 1, padding = 1,
                               init = 'He', init_type = 'StyleGAN', gain_sq_base = 2.,
                               equalized_lr = True, include_bias = False )
-            conv2 = Conv2dEx( ni = channel_num, nf = channel_num, ks = 3, stride = 1, padding = 1,
+            conv2 = Conv2dEx( ni = b*channel_num, nf = channel_num, ks = 3, stride = 1, padding = 1,
                               init = 'He', init_type = 'StyleGAN', gain_sq_base = 2.,
                               equalized_lr = True, include_bias = False )
         if norm_type == 'batchnorm':
-            norm1 = nn.BatchNorm2d(channel_num * 2)
+            norm1 = nn.BatchNorm2d( b*nf )
             norm2 = nn.BatchNorm2d(channel_num )
         elif norm_type == 'instancenorm':
             norm1 = NormalizeLayer( 'InstanceNorm' )
@@ -98,7 +105,7 @@ class ResBlock(nn.Module):
         self.block = nn.Sequential(
             conv1,
             norm1,
-            GLU(),
+            relu,
             conv2,
             norm2
         )
@@ -1236,10 +1243,15 @@ class D_NET_STYLED128( D_NET_STYLED64 ):
 
         ndf = cfg.GAN.DF_DIM
 
-        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm' ) )  # instancenorm
+        blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
+                  cfg.GAN.BLUR_TYPE is not None else None
+
+        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
+        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # instancenorm
+        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
 
         # going from resolution 64 to 128:
-        self._increase_scale( ndf * 4, ndf * 4 )  # self._increase_scale( ndf * 4, ndf * 2 )
+        # self._increase_scale( ndf * 6, ndf * 4 )  # self._increase_scale( ndf * 4, ndf * 2 )
 
         self.preprocess_x = Lambda( lambda x: x.view( -1, 3, 128, 128 ) )
         self._update_fromrgb( nf = ndf * 4 )  # self._update_fromrgb( nf = ndf * 2 )
@@ -1273,10 +1285,15 @@ class D_NET_STYLED256( D_NET_STYLED128 ):
 
         ndf = cfg.GAN.DF_DIM
 
-        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm' ) )  # instancenorm
+        blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
+                  cfg.GAN.BLUR_TYPE is not None else None
+
+        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
+        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # instancenorm
+        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
 
         # going from resolution 128 to 256:
-        self._increase_scale( ndf * 4, ndf * 4 )  # self._increase_scale( ndf * 2, ndf * 1 )
+        # self._increase_scale( ndf * 6, ndf * 4 )  # self._increase_scale( ndf * 2, ndf * 1 )
 
         self.preprocess_x = Lambda( lambda x: x.view( -1, 3, 256, 256 ) )
         self._update_fromrgb( nf = ndf * 4 )  # self._update_fromrgb( nf = ndf * 1 )
