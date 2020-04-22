@@ -23,6 +23,8 @@ GAN:
     GF_DIM: 48
     Z_DIM: 100
     R_NUM: 3
+    B_STYLEGEN: False
+    B_STYLEDISC: False
 
 TEXT:
     EMBEDDING_DIM: 256  # 768 for GPT-2, 256 for the default RNN_ENCODER bi-directional LSTM
