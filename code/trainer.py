@@ -197,7 +197,7 @@ class condGANTrainer(object):
         _pathG = '%s/netG_epoch_%d.pth' % ( self.model_dir, epoch )
         if cfg.GAN.B_STYLEGEN:
             torch.save( {
-                'w_ewma': netG.w_ewma.to( 'cpu' ),
+                'w_ewma': netG.w_ewma,  # .to( 'cpu' ),
                 'netG_state_dict': netG.state_dict()
                 }, _pathG
             )

@@ -183,15 +183,26 @@ def upBlock(in_planes, out_planes):
 
 
 # Keep the spatial size
-def Block3x3_relu(in_planes, out_planes):
+def Block3x3_relu( in_planes, out_planes, ex = False, norm_type = 'batchnorm' ):
+    if not ex:
+        conv = conv3x3(in_planes, out_planes * 2)
+    else:
+        conv = Conv2dEx( ni = in_planes, nf = out_planes * 2, ks = 3, stride = 1, padding = 1,
+                         init = 'He', init_type = 'StyleGAN', gain_sq_base = 2.,
+                         equalized_lr = True, include_bias = False )
+    if norm_type == 'batchnorm':
+        norm = nn.BatchNorm2d(out_planes * 2)
+    elif norm_type == 'instancenorm':
+        norm = NormalizeLayer( 'InstanceNorm' )
     block = nn.Sequential(
-        conv3x3(in_planes, out_planes * 2),
-        nn.BatchNorm2d(out_planes * 2),
+        conv,
+        norm,
         GLU())
     return block
 
+
 class ResBlock(nn.Module):
-    def __init__(self, channel_num, ex = False, norm_type = 'batchnorm', use_glu = True, bottle = False ):
+    def __init__(self, channel_num, ex = False, norm_type = 'batchnorm', use_glu = True, bottle = False, use_bias = False ):
         super(ResBlock, self).__init__()
         b = 2 if bottle else 1
         if use_glu:
@@ -199,29 +210,31 @@ class ResBlock(nn.Module):
             nf = channel_num * 2
         else:
             relu = nn.LeakyReLU( negative_slope = .2 )
-            nf = channel_num        
+            nf = channel_num
         if not ex:
-            conv1 = conv3x3(channel_num, b*nf)
-            conv2 = conv3x3(b*channel_num, channel_num)
+            conv1 = conv3x3(channel_num, b*nf, use_bias = use_bias )
+            conv2 = conv3x3(b*channel_num, channel_num, use_bias = use_bias )
         else:
             conv1 = Conv2dEx( ni = channel_num, nf = b*nf, ks = 3, stride = 1, padding = 1,
                               init = 'He', init_type = 'StyleGAN', gain_sq_base = 2.,
-                              equalized_lr = True, include_bias = False )
+                              equalized_lr = True, include_bias = use_bias )
             conv2 = Conv2dEx( ni = b*channel_num, nf = channel_num, ks = 3, stride = 1, padding = 1,
                               init = 'He', init_type = 'StyleGAN', gain_sq_base = 2.,
-                              equalized_lr = True, include_bias = False )
+                              equalized_lr = True, include_bias = use_bias )
+        norm1 = []
+        norm2 = []
         if norm_type == 'batchnorm':
-            norm1 = nn.BatchNorm2d( b*nf )
-            norm2 = nn.BatchNorm2d(channel_num )
+            norm1 = [ nn.BatchNorm2d( b*nf ) ]
+            norm2 = [ nn.BatchNorm2d(channel_num ) ]
         elif norm_type == 'instancenorm':
-            norm1 = NormalizeLayer( 'InstanceNorm' )
-            norm2 = NormalizeLayer( 'InstanceNorm' )
+            norm1 = [ NormalizeLayer( 'InstanceNorm' ) ]
+            norm2 = [ NormalizeLayer( 'InstanceNorm' ) ]
         self.block = nn.Sequential(
             conv1,
-            norm1,
+            *norm1,
             relu,
             conv2,
-            norm2
+            *norm2
         )
 
     def forward(self, x):
@@ -574,6 +587,7 @@ class NEXT_STAGE_G_STYLED( nn.Module ):
 
     def define_module(self):
         ngf = self.gf_dim
+        # self.block3x3 = Block3x3_relu( ngf, ngf, ex = True, norm_type = 'batchnorm' )
         self.att = ATT_NET( ngf, self.ef_dim )
         # self.residual = self._make_layer(ResBlock, ngf * 2)
         self.residual = ResBlock( ngf * 2, ex = True, norm_type = 'batchnorm' )  # instancenorm
@@ -658,6 +672,8 @@ class NEXT_STAGE_G_STYLED( nn.Module ):
             att1: batch x sourceL x queryL
         """
         # x = self.z_to_w( x )
+
+        # out = self.block3x3( out )
 
         self.att.applyMask( mask )
         c_code, att = self.att( out, word_embs )
@@ -1240,15 +1256,17 @@ class D_NET_STYLED128( D_NET_STYLED64 ):
 
         ndf = cfg.GAN.DF_DIM
 
-        blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
-                  cfg.GAN.BLUR_TYPE is not None else None
+        # blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
+        #           cfg.GAN.BLUR_TYPE is not None else None
 
-        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
-        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # instancenorm
-        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
+        # self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
+        # self.disc_blocks.insert( 0, self.nl )
+        # self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = None, use_glu = False, use_bias = True ) )  # batchnorm  # instancenorm
+        # self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # batchnorm  # instancenorm
+        # self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
 
         # going from resolution 64 to 128:
-        # self._increase_scale( ndf * 6, ndf * 4 )  # self._increase_scale( ndf * 4, ndf * 2 )
+        self._increase_scale( ndf * 4, ndf * 4 )  # self._increase_scale( ndf * 4, ndf * 2 )
 
         self.preprocess_x = Lambda( lambda x: x.view( -1, 3, 128, 128 ) )
         self._update_fromrgb( nf = ndf * 4 )  # self._update_fromrgb( nf = ndf * 2 )
@@ -1282,15 +1300,17 @@ class D_NET_STYLED256( D_NET_STYLED128 ):
 
         ndf = cfg.GAN.DF_DIM
 
-        blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
-                  cfg.GAN.BLUR_TYPE is not None else None
+        # blur_op = get_blur_op( blur_type = cfg.GAN.BLUR_TYPE, num_channels = ndf * 4 ) if \
+        #           cfg.GAN.BLUR_TYPE is not None else None
 
-        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
-        self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # instancenorm
-        self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
+        # self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4, downsample = True, blur_op = blur_op ) )
+        # self.disc_blocks.insert( 0, self.nl )
+        # self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = None, use_glu = False ) )  # batchnorm  # instancenorm
+        # self.disc_blocks.insert( 0, ResBlock( ndf * 4, ex = True, norm_type = 'batchnorm', use_glu = False ) )  # batchnorm  # instancenorm
+        # self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
 
         # going from resolution 128 to 256:
-        # self._increase_scale( ndf * 6, ndf * 4 )  # self._increase_scale( ndf * 2, ndf * 1 )
+        self._increase_scale( ndf * 4, ndf * 4 )  # self._increase_scale( ndf * 2, ndf * 1 )
 
         self.preprocess_x = Lambda( lambda x: x.view( -1, 3, 256, 256 ) )
         self._update_fromrgb( nf = ndf * 4 )  # self._update_fromrgb( nf = ndf * 1 )

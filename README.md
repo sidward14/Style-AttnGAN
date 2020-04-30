@@ -4,7 +4,7 @@ Pytorch implementation of a modified (styled) [AttnGAN](https://arxiv.org/abs/17
 
 <p align="center"><b><i>GIF OF LATENT SPACE CONTROL EXAMPLE COMING SOON</i></b></p>
 
-This implementation also provides one with the option to utilize state-of-the-art transformer architectures from huggingface's [transformers](https://github.com/huggingface/transformers) library as the text encoder for Style-AttnGAN (currently only supports GPT-2).
+This implementation also provides one with the option to utilize state-of-the-art transformer-based architectures from huggingface's [transformers](https://github.com/huggingface/transformers) library as the text encoder for Style-AttnGAN (currently only supports GPT-2). Among other things, utilization of these transformer-based encoders significantly improves image synthesis when the length of the input text sequence is large.
 
 Original AttnGAN paper: [AttnGAN: Fine-Grained Text to Image Generation
 with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/content_cvpr_2018/papers/Xu_AttnGAN_Fine-Grained_Text_CVPR_2018_paper.pdf) by Tao Xu, Pengchuan Zhang, Qiuyuan Huang, Han Zhang, Zhe Gan, Xiaolei Huang, Xiaodong He. (This work was performed when Tao was an intern with Microsoft Research). Thank you for your brilliant work.

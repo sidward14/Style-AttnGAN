@@ -19,8 +19,8 @@ TRAIN:
 
 
 GAN:
-    DF_DIM: 16  # 64
-    GF_DIM: 32  # 128
+    DF_DIM: 32  # medium model
+    GF_DIM: 32  # medium model
     Z_DIM: 100
     R_NUM: 3
 

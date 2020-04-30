@@ -48,7 +48,7 @@ __C.TRAIN.SMOOTH.LAMBDA = 1.0
 
 # Modal options
 __C.GAN = edict()
-__C.GAN.DF_DIM = 16              # default is 64
+__C.GAN.DF_DIM = 32              # default is 64
 __C.GAN.GF_DIM = 32              # start with 128 for StyleGAN, default is 32
 __C.GAN.Z_DIM = 100              # start with the StyleGAN/ProGAN default of 512, rather than the AttnGAN default of 100
 __C.GAN.W_DIM = 100              # probably just leave it as matched with Z_DIM (StyleGAN only)

@@ -29,8 +29,8 @@ TRAIN:
 
 
 GAN:
-    DF_DIM: 16  # small model, default is 64
-    GF_DIM: 32  # small model, default is 128
+    DF_DIM: 32  # medium model
+    GF_DIM: 32  # medium model
     Z_DIM: 100  # scale with GF_DIM & DF_DIM
     R_NUM: 2
 
