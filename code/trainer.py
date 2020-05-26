@@ -138,6 +138,8 @@ class condGANTrainer(object):
             state_dict = torch.load(cfg.TRAIN.NET_G, map_location=lambda storage, loc: storage)
             if cfg.GAN.B_STYLEGEN:
                 netG.w_ewma = state_dict[ 'w_ewma' ]
+                if cfg.CUDA:
+                    netG.w_ewma = netG.w_ewma.to( 'cuda:' + str( cfg.GPU_ID ) )
                 netG.load_state_dict( state_dict[ 'netG_state_dict' ] )
             else:
                 netG.load_state_dict( state_dict )
@@ -401,7 +403,7 @@ class condGANTrainer(object):
 
     def sampling(self, split_dir):
         if cfg.TRAIN.NET_G == '':
-            print('Error: the path for morels is not found!')
+            print('Error: the path for models is not found!')
         else:
             if split_dir == 'test':
                 split_dir = 'valid'
@@ -438,7 +440,9 @@ class condGANTrainer(object):
             # state_dict = torch.load(cfg.TRAIN.NET_G)
             state_dict = torch.load(model_dir, map_location=lambda storage, loc: storage)
             if cfg.GAN.B_STYLEGEN:
-                netG.w_ewma = state_dict[ 'w_ewma' ]            
+                netG.w_ewma = state_dict[ 'w_ewma' ]
+                if cfg.CUDA:
+                    netG.w_ewma = netG.w_ewma.to( 'cuda:' + str( cfg.GPU_ID ) )
                 netG.load_state_dict( state_dict[ 'netG_state_dict' ] )
             else:
                 netG.load_state_dict( state_dict )
@@ -523,10 +527,12 @@ class condGANTrainer(object):
             # the path to save generated images                
             s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')]
             model_dir = cfg.TRAIN.NET_G
-            state_dict = torch.load(model_dir, map_location=lambda storage, loc: storage)
+            state_dict = torch.load(model_dir, map_location = lambda storage, loc: storage)
             if cfg.GAN.B_STYLEGEN:
                 # netG.load_state_dict( state_dict )
                 netG.w_ewma = state_dict[ 'w_ewma' ]
+                if cfg.CUDA:
+                    netG.w_ewma = netG.w_ewma.to( 'cuda:' + str( cfg.GPU_ID ) )
                 netG.load_state_dict( state_dict[ 'netG_state_dict' ] )
             else:
                 netG.load_state_dict( state_dict )

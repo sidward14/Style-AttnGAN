@@ -203,7 +203,9 @@ def models(word_len):
             netG = G_NET()
         checkpoint = torch.load(cfg.TRAIN.NET_G, map_location=lambda storage, loc: storage)
         if cfg.GAN.B_STYLEGEN:
-            netG.w_ewma = checkpoint[ 'w_ewma' ]            
+            netG.w_ewma = checkpoint[ 'w_ewma' ]
+            if cfg.CUDA:
+                netG.w_ewma = netG.w_ewma.to( 'cuda:' + str( cfg.GPU_ID ) )
             netG.load_state_dict( checkpoint[ 'netG_state_dict' ] )
         else:
             netG.load_state_dict( checkpoint )
