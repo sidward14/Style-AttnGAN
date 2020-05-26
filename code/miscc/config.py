@@ -63,6 +63,7 @@ __C.GAN.PSI = .7                 # multiplicative factor by which to truncate th
 __C.GAN.CUTOFF_STAGE = 4         # cutoff stage to stop using the truncation trick (StyleGAN only)
 __C.GAN.MBSTD_GROUP_SIZE = 4     # group size for minibatch standard deviation to improve variation (StyleGAN only)
 __C.GAN.BLUR_TYPE = 'binomial'   # type of low-pass filter to use for better upssampling/downsampling (StyleGAN only)
+__C.GAN.B_TANH = True            # whether to use tanh at the end of the generator to force values into [0,1]
 # TODO: __C.GAN.NUM_CLASSES = 0
 __C.GAN.B_ATTENTION = True
 __C.GAN.B_DCGAN = False

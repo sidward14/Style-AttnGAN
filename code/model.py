@@ -755,10 +755,11 @@ class NEXT_STAGE_G(nn.Module):
 class GET_IMAGE_G_STYLED( nn.Module ):
     def __init__( self, ngf ):
         super( GET_IMAGE_G_STYLED, self ).__init__()
-        self.torgb = Conv2dEx( ni = ngf, nf = 3, ks = 1, stride = 1,
-                               padding = 0, init = 'He', init_type = 'StyleGAN',
-                               gain_sq_base = 1., equalized_lr = True )
-    
+        conv = Conv2dEx( ni = ngf, nf = 3, ks = 1, stride = 1,
+                         padding = 0, init = 'He', init_type = 'StyleGAN',
+                         gain_sq_base = 1., equalized_lr = True )
+        self.torgb = nn.Sequential( conv ) if not cfg.GAN.B_TANH else nn.Sequential( conv, nn.Tanh() )
+
     def forward( self, h_code ):
         return self.torgb( h_code )
 
@@ -1269,6 +1270,7 @@ class D_NET_STYLED128( D_NET_STYLED64 ):
 
         # going from resolution 64 to 128:
         self._increase_scale( ndf * 4, ndf * 4 )  # self._increase_scale( ndf * 4, ndf * 2 )
+        # self.disc_blocks.insert( 0, self._get_conv_layer( ni = ndf * 4, nf = ndf * 4 ) )
 
         self.preprocess_x = Lambda( lambda x: x.view( -1, 3, 128, 128 ) )
         self._update_fromrgb( nf = ndf * 4 )  # self._update_fromrgb( nf = ndf * 2 )
