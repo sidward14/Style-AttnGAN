@@ -62,8 +62,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 **Pretrained Model**
 - [DAMSM for bird](https://drive.google.com/open?id=1GNUKjVeyWYBJ8hEU-yrfYQpDOkxEyP3V). Download and save it to `DAMSMencoders/`
 - [DAMSM for coco](https://drive.google.com/open?id=1zIrXCE9F6yfbEJIbNP5-YrEe2pZcPSGJ). Download and save it to `DAMSMencoders/`
-- [Style-AttnGAN for bird](). Download and save it to `models/`
-  - _COMING SOON_
+- [Style-AttnGAN for bird](https://drive.google.com/file/d/11Fo003VQJbXK9OBT18PESlP6wqtbaQAo/view?usp=sharing). Download and save it to `models/`
 - [Style-AttnGAN for coco](). Download and save it to `models/`
   - _COMING SOON_
 - [Original AttnGAN for bird](https://drive.google.com/open?id=1lqNG75suOuR_8gjoEPYNp8VyT_ufPPig). Download and save it to `models/`
