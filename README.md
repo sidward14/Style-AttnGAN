@@ -128,7 +128,7 @@ If you find the original AttnGAN useful in your research, please consider citing
 --------------------------------------------------------------------------------
 
 ### TODO:
-- [ ] Add link to downloading pretrained Style-AttnGAN models
+- [x] Add link to downloading pretrained Style-AttnGAN models
 - [ ] Provide examples for latent space control (GIF) and style-mixing
 - [ ] __Inception Score and R-precision comparisons with original AttnGAN and MirrorGAN__
 - [ ] __Qualitative comparisons with original AttnGAN and MirrorGAN__
