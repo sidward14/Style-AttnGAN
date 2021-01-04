@@ -1,33 +1,49 @@
 # Style-AttnGAN
 
-Pytorch implementation of a modified (styled) [AttnGAN](https://arxiv.org/abs/1711.10485) [[code]](https://github.com/taoxugit/AttnGAN) architecture that incorporates the strong latent space control provided by [StyleGAN](https://arxiv.org/abs/1812.04948)*. This architecture enables one to not only synthesize an image from an input text description, but also move that image in a desired disentangled dimension to alter its structure at different scales (from high-level coarse styles such as pose to fine-grained styles such as background lighting).
+Pytorch implementation of a modified (styled-based) [AttnGAN](https://arxiv.org/abs/1711.10485) [[code]](https://github.com/taoxugit/AttnGAN) architecture that incorporates the strong latent space control provided by [StyleGAN](https://arxiv.org/abs/1812.04948)*. This architecture enables one to not only synthesize an image from an input text description, but also move that image in a desired disentangled dimension to alter its structure at different scales (from high-level coarse styles such as pose to fine-grained styles such as background lighting).
 
-<p align="center"><b><i>GIF OF LATENT SPACE CONTROL EXAMPLE COMING SOON</i></b></p>
+<p align="center"><b><i>GIF OF LATENT SPACE INTERPOLATION EXAMPLE COMING SOON</i></b></p>
+
+| "this is a black bird with gray and white wings and a bright yellow belly and chest." | "tiny bird with long thighs, and a long pointed brown bill." <img width=240/>| "a small bird has a royal blue crown, black eyes, and a baby blue colored bill." |
+|:--:|:--:|:--:|
+<img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Baltimore_Oriole/Baltimore_Oriole_Style-AttnGAN.png" width="240" height="240"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Mockingbird/Mockingbird_Style-AttnGAN.png" width="240" height="240"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Indigo_Bunting/Indigo_Bunting_Style-AttnGAN.png" width="240" height="240"/> |
 
 This implementation also provides one with the option to utilize state-of-the-art transformer-based architectures from huggingface's [transformers](https://github.com/huggingface/transformers) library as the text encoder for Style-AttnGAN (currently only supports GPT-2). Among other things, utilization of these transformer-based encoders significantly improves image synthesis when the length of the input text sequence is large.
 
 Original AttnGAN paper: [AttnGAN: Fine-Grained Text to Image Generation
 with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/content_cvpr_2018/papers/Xu_AttnGAN_Fine-Grained_Text_CVPR_2018_paper.pdf) by Tao Xu, Pengchuan Zhang, Qiuyuan Huang, Han Zhang, Zhe Gan, Xiaolei Huang, Xiaodong He. (This work was performed when Tao was an intern with Microsoft Research). Thank you for your brilliant work.
 
-<img src="framework.png" width="900px" height="350px"/>
+<p align="middle">
+  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/framework.png" width="621" height="241"/>
+  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/stylegan-generator.png" width="211" height="241"/>
+</p>
+
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;*AttnGAN architecture from [arxiv.org/abs/1711.10485](https://arxiv.org/abs/1711.10485)* &emsp;&emsp;&emsp;&emsp;&nbsp; *StyleGAN generator architecture*
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; *from [arxiv.org/abs/1812.04948](https://arxiv.org/abs/1812.04948)* 
 
 ### Copied from LICENSE file (MIT License) for visibility:
 *Copyright for portions of project Style-AttnGAN are held by Tao Xu, 2018 as part of project AttnGAN. All other copyright for project Style-AttnGAN are held by Sidhartha Parhi, 2020. __All non-data files that have not been modified by Sidhartha Parhi include the copyright notice "Copyright (c) 2018 Tao Xu" at the top of the file.__*
 
 --------------------------------------------------------------------------------
+### Instructions:
 
-### Dependencies
-python 3.6+
+**Dependencies**
+
+python 3.7+
 
 Pytorch 1.0+
 
-In addition, please add the project folder to PYTHONPATH and `pip install` the following packages:
+In addition, please add the project folder to PYTHONPATH and `pip install` the following packages (or go `pip install -r requirements.txt`):
 - `python-dateutil`
 - `easydict`
 - `pandas`
 - `torchfile`
 - `nltk`
 - `scikit-image`
+- `pyyaml`
+- `tqdm`
+- `pytorch-fid`
+- `lpips`
 - `transformers`
 - `gan-lab`
 
@@ -35,9 +51,10 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 **Data**
 
-1. Download preprocessed metadata from taoxugit for [birds](https://drive.google.com/open?id=1O_LtUP9sch09QH3s_EBAgLEctBQ5JBSJ) [coco](https://drive.google.com/open?id=1rSnbIGNDGZeHlsUlLdahj0RJ9oo6lgH9) and save them to `data/`
-2. Download the [birds](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) image data. Extract them to `data/birds/`
-3. Download [coco](http://cocodataset.org/#download) dataset and extract the images to `data/coco/`
+1. Download preprocessed metadata from taoxugit for [birds](https://drive.google.com/open?id=1O_LtUP9sch09QH3s_EBAgLEctBQ5JBSJ) [coco](https://drive.google.com/open?id=1rSnbIGNDGZeHlsUlLdahj0RJ9oo6lgH9) and save them to `data/
+2. Unzip `data/birds/text.zip` and/or `data/coco/train2014-text.zip` & `data/coco/val2014-text.zip`
+3. Download the [birds](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) image data. Extract them to `data/birds/`
+4. Download [coco](http://cocodataset.org/#download) dataset and extract the images to `data/coco/`
 
 
 
@@ -72,35 +89,62 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
   - This is an variant of AttnGAN which applies the propsoed attention mechanisms to DCGAN framework. 
 
 **Sampling**
-- Run `python main.py --cfg cfg/eval_bird.yml --gpu 0` to generate examples from captions in files listed in "./data/birds/example_filenames.txt". Results are saved to `DAMSMencoders/`. 
+- Run `python main.py --cfg cfg/eval_bird_style.yml --gpu 0` to generate examples from captions in files listed in "./data/birds/example_filenames.txt". Results are saved in `models/`. 
 - Change the `eval_*.yml` files to generate images from other pre-trained models. 
 - Input your own sentence in "./data/birds/example_captions.txt" if you wannt to generate images from customized sentences. 
 
 **Validation**
-- To generate images for all captions in the validation dataset, change B_VALIDATION to True in the eval_*.yml. and then run `python main.py --cfg cfg/eval_bird.yml --gpu 0`
-- We compute inception score for models trained on birds using [StackGAN-inception-model](https://github.com/hanzhanggit/StackGAN-inception-model). [Coming soon for Style-AttnGAN]
-- We compute inception score for models trained on coco using [improved-gan/inception_score](https://github.com/openai/improved-gan/tree/master/inception_score). [Coming soon for Style-AttnGAN]
+- To generate images for all captions in the validation dataset, <i>change B_VALIDATION to True</i> in the eval_*.yml file, and then run `python main.py --cfg cfg/eval_bird_style.yml --gpu 0`
+- Metrics can be computed based on the validation set. Set the corresponding booleans to <i>True</i> in the eval_*.yml file in order to do so.
+  - The following metrics can be computed with this Style-AttnGAN repo directly:    
+  &nbsp;&nbsp;I. &nbsp;&nbsp;&nbsp;PPL:  
+  &emsp;&emsp;&emsp;Perceptual Path Length. A measure of linear interpolability of the latent space.  
+  &emsp;&emsp;&emsp;Derived from [LPIPS](https://arxiv.org/abs/1801.03924). The lower the better. A lower score is an indication that one  
+  &emsp;&emsp;&emsp;can more easily tune the latent code to generate the exact image he/she desires.  
+  &nbsp;&nbsp;II. &nbsp;&nbsp;FID:  
+  &emsp;&emsp;&emsp;Fréchet Inception Distance. A measure of generated image quality.  
+  &emsp;&emsp;&emsp;Proposed as an improvement over the Inception Score (IS). The lower the better.  
+  &nbsp;&nbsp;III. &nbsp;R-precision:  
+  &emsp;&emsp;&emsp;A measure of visual-semantic similarity between generated images and  
+  &emsp;&emsp;&emsp;their corresponding text description. Expressed as a percentage.  
+  &emsp;&emsp;&emsp;_CLEANED UP IMPLEMENTATION COMING SOON_
+  - To compute Inception Score (IS), use [this repo](https://github.com/hanzhanggit/StackGAN-inception-model) for the birds dataset and [this repo](https://github.com/openai/improved-gan/tree/master/inception_score) for the COCO dataset.
 
 --------------------------------------------------------------------------------
+### Qualitative performance comparisons on birds dataset (CUB-200-2011):
 
-**Examples of latent space control in Style-AttnGAN**
+**Examples generated by Style-AttnGAN vs AttnGAN for input text:**  
+|  | "this is a black bird with gray and white wings and a bright yellow belly and chest." | "tiny bird with long thighs, and a long pointed brown bill." <img width=210/>| "a small bird has a royal blue crown, black eyes, and a baby blue colored bill." |
+|:--:|:--:|:--:|:--:|
+| Style-AttnGAN Generated Images | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Baltimore_Oriole/Baltimore_Oriole_Style-AttnGAN.png" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Mockingbird/Mockingbird_Style-AttnGAN.png" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Indigo_Bunting/Indigo_Bunting_Style-AttnGAN.png" width="210" height="210"/> |
+| AttnGAN Generated Images |  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Baltimore_Oriole/Baltimore_Oriole_AttnGAN.png" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Mockingbird/Mockingbird_AttnGAN.png" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Indigo_Bunting/Indigo_Bunting_AttnGAN.png" width="210" height="210"/>
+| Real Images | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Baltimore_Oriole/Baltimore_Oriole_real.jpg" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Mockingbird/Mockingbird_real.png" width="210" height="210"/> | <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/Indigo_Bunting/Indigo_Bunting_real.png" width="210" height="210"/> |
+
+_I have visually inspected a few hundred generated images from both Style-AttnGAN and AttnGAN. My human judgement is that the Style-AttnGAN images are more photo-realistic and are much more consistent than the AttnGAN images. I plan to test out Style-AttnGAN with other datasets and compare to the SOTA in the near future._
+
+**Examples of latent space interpolation with Style-AttnGAN**
 - _GIF COMING SOON_
 
-**Examples of style-mixing in Style-AttnGAN**
+**Examples of style-mixing with Style-AttnGAN**
 - _COMING SOON_
 
-**Examples generated by Style-AttnGAN**
-
+**Comparisons with MirrorGAN and DM-GAN**
 - _COMING SOON_
 
-**Examples generated by original AttnGAN [[Blog]](https://blogs.microsoft.com/ai/drawing-ai/)**
+--------------------------------------------------------------------------------
+### Quantitative performance comparisons on birds dataset (CUB-200-2011):
+**Notes about the table in general:** The arrows next to each metric title indicate whether lower is better or higher is better. Official reports of scores are used wherever possible; otherwise scores are computed using this repo. "(-)" indicates that the value hasn't been computed/recorded yet; _these will be updated soon_.
 
- bird example              |  coco example
-:-------------------------:|:-------------------------:
-![](https://github.com/taoxugit/AttnGAN/blob/master/example_bird.png)  |  ![](https://github.com/taoxugit/AttnGAN/blob/master/example_coco.png)
+**Note about FID**: [It has been mentioned](https://github.com/MinfengZhu/DM-GAN) that the [PyTorch implementation of FID](https://github.com/mseitzer/pytorch-fid) produces different scores than the [Tensorflow implementation of FID](https://github.com/bioinf-jku/TTUR). _**Also, even though the quantitative quality metrics in the table below (i.e. FID and IS) for Style-AttnGAN seem to be on the lower end relative to the SOTA, visual inspection of these generated images tells a different story. Upon visual inspection of a few hundred generated images, the Style-AttnGAN generated images look more photo-realistic and are much more consistent than the AttnGAN generated images. See the qualitative comparison above for some examples of this.**_
 
-### Inception Score, R-precision, and qualitative comparisons with original AttnGAN and MirrorGAN
-- ***COMING SOON***
+**Note about PPL**:  The PPL (Perceptual Path Length) implementation in Style-AttnGAN aims to replicate the PPL implementation in the [official StyleGAN repo](https://github.com/NVlabs/stylegan). To get a sense of good vs bad scores, please look at the README for this official StyleGAN repo and/or going through the [StyleGAN paper](https://arxiv.org/abs/1812.04948). _Note that for some of these text-to-image generation architectures (e.g. AttnGAN), it is difficult (and probably not possible) to obtain a measure of linear interpolability of the latent space using the PPL metric due to how the text embedding and the noise are mixed together and learned. Nevertheless, my qualitative experiments clearly show the advantage of Style-AttnGAN over AttnGAN in terms of linear interpolation of the latent space. I will put examples of these qualitative experiments in this README soon._
+
+|Model| PPL↓ | R-precision↑ | IS↑ | PyTorch FID↓ | TF FID↓ |
+|:--:|:--:|:--:|:--:|:--:|:--:|
+| Style-AttnGAN | 493.7656 | (-) | 4.33 ± 0.09 | 25.60 | (-) |
+| AttnGAN | (-) | 67.82% ± 4.43% | 4.36 ± 0.03 | 23.98 | 14.01 |
+| MirrorGAN | (-) | 60.42% ± (-) | 4.56 ± 0.05 | (-) | (-) |
+| DM-GAN | (-) | 72.31% ± 0.91% | 4.75 ± 0.07 | 16.09 | (-) |
 
 --------------------------------------------------------------------------------
 
@@ -130,10 +174,12 @@ If you find the original AttnGAN useful in your research, please consider citing
 ### TODO:
 - [x] Add link to downloading pretrained Style-AttnGAN models
 - [ ] Provide examples for latent space control (GIF) and style-mixing
-- [ ] __Inception Score and R-precision comparisons with original AttnGAN and MirrorGAN__
-- [ ] __Qualitative comparisons with original AttnGAN and MirrorGAN__
+- [ ] Complete the Table of quantitative performance comparisons
+- [ ] Qualitative comparisons with MirrorGAN and DM-GAN
 - [ ] Implement easier API functionality for latent space control
 - [ ] Implement improvements from StyleGAN2
+- [ ] Analysis with COCO dataset
 - [ ] Implement more options for SOTA transformer architectures as the text encoder (currently only supports GPT-2)
+- [ ] Deploy as a web app that makes it easy to control the specific image one wants to generate
 
 *Improvements from StyleGAN2 coming soon
