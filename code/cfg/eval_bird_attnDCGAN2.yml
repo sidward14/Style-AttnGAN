@@ -6,6 +6,9 @@ GPU_ID: 0
 WORKERS: 1
 
 B_VALIDATION: False  # True  # False
+
+B_FID: False  # True
+
 TREE:
     BRANCH_NUM: 3  # what resolution of generated image to produce
 
