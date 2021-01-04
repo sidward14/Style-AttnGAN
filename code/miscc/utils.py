@@ -1,5 +1,3 @@
-# Copyright (c) 2018 Tao Xu
-
 import os
 import errno
 import numpy as np
@@ -13,6 +11,9 @@ from copy import deepcopy
 import skimage.transform
 
 from miscc.config import cfg
+
+from itertools import islice
+import shutil
 
 
 # For visualization ################################################
@@ -313,11 +314,33 @@ def copy_G_params(model):
     return flatten
 
 
+####################################################################
 def mkdir_p(path):
     try:
         os.makedirs(path)
-    except OSError as exc:  # Python >2.5
+    except OSError as exc:  # Python > 2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
             raise
+
+def collapse_dirs( root_dir, final_dir, copy = False, ext = '.png' ):
+    """Moves files of extension `ext` to `final_dir` and returns a list of the src and dst paths"""
+    orig_paths = []
+    final_paths = []
+    mkdir_p( final_dir )
+    for root, _, files in islice( os.walk( root_dir ), 1, None ):
+        if root != final_dir:
+            for f in files:
+                if f.endswith( ext ):
+                    orig_paths.append( os.path.join( root, f ) )
+                    final_paths.append( os.path.join( final_dir, f ) )
+    for orig_path, final_path in zip( orig_paths, final_paths ):
+        shutil.move( orig_path, final_path ) if not copy else shutil.copy( orig_path, final_path )
+    return orig_paths, final_paths
+
+def mv_to_paths( orig_paths, final_paths, ext = '.png' ):
+    assert ( len( orig_paths ) == len( final_paths ) )
+    for orig_path, final_path in zip( orig_paths, final_paths ):
+        if orig_path.endswith( ext ):
+            shutil.move( orig_path, final_path )

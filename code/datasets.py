@@ -323,6 +323,7 @@ class TextDataset(data.Dataset):
                         bbox, self.transform, normalize=self.norm)
         # random select a sentence
         sent_ix = random.randint(0, self.embeddings_num)
+        # sent_ix = 0
         new_sent_ix = index * self.embeddings_num + sent_ix
         caps, cap_len = self.get_caption(new_sent_ix)
         return imgs, caps, cap_len, cls_id, key
@@ -330,3 +331,24 @@ class TextDataset(data.Dataset):
 
     def __len__(self):
         return len(self.filenames)
+
+
+
+class ImageFolderDataset( data.Dataset ):
+    def __init__( self, img_paths, transform = None, save_transformed = False ):
+        self.img_paths = img_paths
+        self.transform = transform
+        self.tensor_transform = transforms.Compose([transforms.ToTensor()])
+        self.save_transformed = save_transformed
+
+    def __getitem__( self, index ):
+        img_path = self.img_paths[index]
+        img = Image.open( img_path ).convert('RGB')
+        if self.transform is not None:
+            img = self.transform( img )
+        if self.save_transformed:
+            img.save( img_path )
+        return self.tensor_transform( img )
+    
+    def __len__( self ):
+        return len( self.img_paths )

@@ -2,7 +2,9 @@ from __future__ import print_function
 
 from model import TRANSFORMER_ENCODER
 from miscc.config import cfg, cfg_from_file
-from datasets import TextDataset
+from miscc.utils import collapse_dirs, mv_to_paths
+from miscc.metrics import compute_ppl
+from datasets import TextDataset, ImageFolderDataset
 from trainer import condGANTrainer as trainer
 
 import os
@@ -13,6 +15,7 @@ import pprint
 import datetime
 import dateutil.tz
 import argparse
+from pathlib import Path
 import numpy as np
 
 import torch
@@ -21,6 +24,8 @@ import torchvision.transforms as transforms
 from nltk.tokenize import RegexpTokenizer
 from transformers import GPT2Tokenizer
 
+from tqdm import tqdm
+import pytorch_fid.fid_score
 
 dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), './.')))
 sys.path.append(dir_path)
@@ -149,12 +154,85 @@ if __name__ == "__main__":
 
     start_t = time.time()
     if cfg.TRAIN.FLAG:
+        print( '\nTraining...\n+++++++++++' )
         algo.train()
+        end_t = time.time()
+        print('Total time for training:', end_t - start_t)
     else:
-        '''generate images from pre-extracted embeddings'''
-        if cfg.B_VALIDATION:
-            algo.sampling(split_dir)  # generate images for the whole valid dataset
+        # generate images from pre-extracted embeddings
+        if not cfg.B_VALIDATION:
+            # generate images for customized captions
+            print( '\nRunning on example captions...\n++++++++++++++++++++++++++++++' )
+            root_dir_g = gen_example(dataset.wordtoix, dataset.text_encoder_type, algo)
+            end_t = time.time()
+            print('Total time for running on example captions:', end_t - start_t)
         else:
-            gen_example(dataset.wordtoix, dataset.text_encoder_type, algo)  # generate images for customized captions
-    end_t = time.time()
-    print('Total time for training:', end_t - start_t)
+            # generate images for the whole valid dataset
+            print( '\nValidating...\n+++++++++++++' )
+            root_dir_g = algo.sampling(split_dir)
+            end_t = time.time()
+            print('Total time for validation:', end_t - start_t)
+            print()
+
+            # GAN Metrics
+            if cfg.B_FID or cfg.B_PPL:  # or cfg.B_IS:
+                device = torch.device( 'cuda' if (torch.cuda.is_available()) else 'cpu' )
+                num_metrics = 0
+                final_dir_g = str( Path( root_dir_g ).parent/'metrics' )
+                # compute FID
+                if cfg.B_FID:
+                    print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                    print( 'Computing FID...' )
+                    print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                    orig_paths_g, final_paths_g = collapse_dirs( root_dir_g, final_dir_g )
+                    # -- #
+                    data_dir_r = '%s/CUB_200_2011' % dataset.data_dir if dataset.bbox is not None else dataset.data_dir
+                    root_dir_r = os.path.join( data_dir_r, 'images' )
+                    final_dir_r = os.path.join( root_dir_r, f'{imsize}x{imsize}' )
+                    orig_paths_r, final_paths_r = collapse_dirs( root_dir_r, final_dir_r, copy = True, ext = '.jpg' )
+                    dataset_rsz = ImageFolderDataset( img_paths = final_paths_r,
+                                                      transform = image_transform,  # transforms.Compose([transforms.Resize((imsize, imsize,))]),
+                                                      save_transformed = True )
+                    dataloader_rsz = torch.utils.data.DataLoader( dataset_rsz, batch_size = cfg.TRAIN.BATCH_SIZE,
+                                                                  drop_last = False, shuffle = False, num_workers = int(cfg.WORKERS) )
+                    dl_itr = iter( dataloader_rsz )
+                    print( f'Resizing real images to that of generated images and then saving into {final_dir_r}' )
+                    for batch_itr in tqdm( range( len( dataloader_rsz ) ) ):
+                        next( dl_itr )
+                    # -- #
+                    print( f'Number of generated images to be used in FID calculation: {len( final_paths_g )}' )
+                    print( f'Number of real images to be used in FID calculation: {len( final_paths_r )}' )
+                    fid_value = pytorch_fid.fid_score.calculate_fid_given_paths( paths = [ final_dir_g, final_dir_r ],
+                                                                                           batch_size = 50,
+                                                                                           device = device,
+                                                                                           dims = 2048 )
+                    mv_to_paths( final_paths_g, orig_paths_g )
+                    with open( os.path.join( final_dir_g, 'metrics.txt' ), 'w' if num_metrics == 0 else 'a' ) as f:
+                        f.write( 'Frechet Inception Distance (FID): {:f}\n'.format( fid_value ) )
+                        f.write( 'Root Directories for Datasets used in Calculation: {}, {}\n\n'.format( root_dir_g, root_dir_r ) )
+                        num_metrics += 1
+                    print( '---> Frechet Inception Distance (FID): {:f}\n'.format( fid_value ) )
+                # compute PPL
+                if cfg.B_PPL:
+                    print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                    print( 'Computing PPL...' )
+                    print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                    print( f'Number of generated images to be used in PPL calculation: ~{cfg.PPL_NUM_SAMPLES}' )
+                    ppl_value = compute_ppl( algo, space = 'smart', num_samples = cfg.PPL_NUM_SAMPLES, eps = 1e-4, net = 'vgg' )
+                    with open( os.path.join( final_dir_g, 'metrics.txt' ), 'w' if num_metrics == 0 else 'a' ) as f:
+                        f.write( 'Perceptual Path Length (PPL): {:f}\n'.format( ppl_value ) )
+                        f.write( 'Root Directories for Datasets used in Calculation: {}\n\n'.format( root_dir_g ) )
+                        num_metrics += 1
+                    print( '---> Perceptual Path Length (PPL): {:f}\n'.format( ppl_value ) )
+                # # compute IS         # NOTE: See README.md for IS
+                # if cfg.B_IS:
+                #     print( '\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                #     print( 'Computing IS...' )
+                #     print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
+                #     print( f'Number of generated images to be used in IS calculation: {len( final_paths_g )}' )
+                #     # exec(open("/home/sid/repos/ml-repos/inception-score-pytorch/inception_score.py").read())
+                #     exec(open("/home/sid/repos/ml-repos/StackGAN-inception-model/inception_score.py").read())
+                #     with open( os.path.join( final_dir_g, 'metrics.txt' ), 'a' ) as f:
+                #         f.write( 'Inception Score (IS): {:f}\n'.format( is_value ) )
+                #         f.write( 'Root Directories for Datasets used in Calculation: {}\n'.format( root_dir_g ) )
+                #     print( '---> Inception Score (IS): {:f}\n'.format( is_value ) )

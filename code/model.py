@@ -333,7 +333,7 @@ class CNN_ENCODER(nn.Module):
 class CA_NET(nn.Module):
     # some code is modified from vae examples
     # (https://github.com/pytorch/examples/blob/master/vae/main.py)
-    def __init__(self):
+    def __init__( self ):
         super(CA_NET, self).__init__()
         self.t_dim = cfg.TEXT.EMBEDDING_DIM
         self.c_dim = cfg.GAN.CONDITION_DIM
@@ -346,18 +346,19 @@ class CA_NET(nn.Module):
         logvar = x[:, self.c_dim:]
         return mu, logvar
 
-    def reparametrize(self, mu, logvar):
+    def reparametrize(self, mu, logvar, eps = None):
         std = logvar.mul(0.5).exp_()
-        if cfg.CUDA:
-            eps = torch.cuda.FloatTensor(std.size()).normal_()
-        else:
-            eps = torch.FloatTensor(std.size()).normal_()
+        if eps is None:
+            if cfg.CUDA:
+                eps = torch.cuda.FloatTensor(std.size()).normal_()
+            else:
+                eps = torch.FloatTensor(std.size()).normal_()
         eps = Variable(eps)
         return eps.mul(std).add_(mu)
 
-    def forward(self, text_embedding):
+    def forward(self, text_embedding, eps = None):
         mu, logvar = self.encode(text_embedding)
-        c_code = self.reparametrize(mu, logvar)
+        c_code = self.reparametrize(mu, logvar, eps = eps)
         return c_code, mu, logvar
 
 
@@ -507,6 +508,7 @@ class INIT_STAGE_G_STYLED( nn.Module ):
 
             if n:
                 out = layer[ 0 ]( out )
+            # if False:
             if self.use_noise:
                 out = layer[ 1 ]( out, noise = noise[ n ] if noise is not None else None )
             out = layer[ 2 ]( out )
@@ -688,6 +690,7 @@ class NEXT_STAGE_G_STYLED( nn.Module ):
 
         for n, layer in enumerate( self.gen_layers ):
             out = layer[ 0 ]( out )
+            # if False:
             if self.use_noise:
                 out = layer[ 1 ]( out, noise = noise[ n ] if noise is not None else None )
             out = layer[ 2 ]( out )
@@ -824,6 +827,10 @@ class G_NET_STYLED( nn.Module ):
         self.use_truncation_trick = True if self._trunc_cutoff_stage else False
         self.w_ewma = None
 
+        self.noise_net1 = None
+        self.noise_net2 = None
+        self.noise_net3 = None
+
     def to( self, *args, **kwargs ):
         """Overwritten to allow for non-Parameter objects' Tensors to be sent to the appropriate device."""
         super( G_NET_STYLED, self ).to( *args, **kwargs )
@@ -917,13 +924,13 @@ class G_NET_STYLED( nn.Module ):
 
         if cfg.TREE.BRANCH_NUM > 0:
             h_code1 = \
-                self.h_net1( w_code, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage,
+                self.h_net1( w_code, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage, noise = self.noise_net1,
                              use_truncation_trick = self.use_truncation_trick, trunc_cutoff_stage = self.trunc_cutoff_stage, w_ewma = self.w_ewma, w_eval_psi = self.w_eval_psi )
             fake_img1 = self.img_net1( h_code1 )
             fake_imgs.append( fake_img1 )
         if cfg.TREE.BRANCH_NUM > 1:
             h_code2, att1 = \
-                self.h_net2( h_code1, w_code, word_embs, mask, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage,
+                self.h_net2( h_code1, w_code, word_embs, mask, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage, noise = self.noise_net2,
                              use_truncation_trick = self.use_truncation_trick, trunc_cutoff_stage = self.trunc_cutoff_stage, w_ewma = self.w_ewma, w_eval_psi = self.w_eval_psi )
             fake_img2 = self.img_net2( h_code2 )
             fake_imgs.append( fake_img2 )
@@ -931,7 +938,7 @@ class G_NET_STYLED( nn.Module ):
                 att_maps.append( att1 )
         if cfg.TREE.BRANCH_NUM > 2:
             h_code3, att2 = \
-                self.h_net3( h_code2, w_code, word_embs, mask, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage,
+                self.h_net3( h_code2, w_code, word_embs, mask, x2 = w2_code, cutoff_idx = cutoff_idx, style_mixing_stage = style_mixing_stage, noise = self.noise_net3,
                              use_truncation_trick = self.use_truncation_trick, trunc_cutoff_stage = self.trunc_cutoff_stage, w_ewma = self.w_ewma, w_eval_psi = self.w_eval_psi )
             fake_img3 = self.img_net3( h_code3 )
             fake_imgs.append( fake_img3 )
@@ -959,7 +966,7 @@ class G_NET(nn.Module):
             self.h_net3 = NEXT_STAGE_G(ngf, nef, ncf)
             self.img_net3 = GET_IMAGE_G(ngf)
 
-    def forward(self, z_code, sent_emb, word_embs, mask):
+    def forward( self, z_code, sent_emb, word_embs, mask, eps = None ):
         """
             :param z_code: batch x cfg.GAN.Z_DIM
             :param sent_emb: batch x cfg.TEXT.EMBEDDING_DIM
@@ -969,7 +976,7 @@ class G_NET(nn.Module):
         """
         fake_imgs = []
         att_maps = []
-        c_code, mu, logvar = self.ca_net(sent_emb)
+        c_code, mu, logvar = self.ca_net( sent_emb, eps = eps )
 
         if cfg.TREE.BRANCH_NUM > 0:
             # z_code *= 40.
@@ -1011,7 +1018,7 @@ class G_DCGAN(nn.Module):
             self.h_net3 = NEXT_STAGE_G(ngf, nef, ncf)
         self.img_net = GET_IMAGE_G(ngf)
 
-    def forward(self, z_code, sent_emb, word_embs, mask):
+    def forward(self, z_code, sent_emb, word_embs, mask, eps = None ):
         """
             :param z_code: batch x cfg.GAN.Z_DIM
             :param sent_emb: batch x cfg.TEXT.EMBEDDING_DIM
@@ -1020,7 +1027,8 @@ class G_DCGAN(nn.Module):
             :return:
         """
         att_maps = []
-        c_code, mu, logvar = self.ca_net(sent_emb)
+        c_code, mu, logvar = self.ca_net( sent_emb, eps = eps )
+
         if cfg.TREE.BRANCH_NUM > 0:
             h_code = self.h_net1(z_code, c_code)
         if cfg.TREE.BRANCH_NUM > 1:
