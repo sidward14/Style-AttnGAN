@@ -59,7 +59,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 
 **Training**
-- Pre-train DAMSM models and then save best text & image encoders into `DAMSMencoders/` and specify the text encoder path in NET_E in the appropriate Style-AttnGAN yaml or in code/miscc/config.py (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
+- Pre-train DAMSM models:
   - For bird dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/bird.yml --gpu 0`
   - For coco dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/coco.yml --gpu 0`
  
@@ -72,6 +72,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
   - For coco dataset: `python main.py --cfg cfg/coco_attn2.yml --gpu 0`
 
 - `*.yml` files are example configuration files for training/evaluation models.
+- After pretraining DAMSM, save best text & image encoders into `DAMSMencoders/` and specify the text encoder path in NET_E in the appropriate Style-AttnGAN yaml or in code/miscc/config.py. Alternatrively, skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below.
 - User can also optionally set the `--text_encoder_type` flag to `transformer` to use GPT-2 as the text encoder (more text encoder options coming soon). If doing so, user must pre-train the DAMSM (see instruction above).
 
 
