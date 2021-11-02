@@ -55,8 +55,9 @@ class condGANTrainer(object):
     def build_models(self):
         # ###################encoders######################################## #
         if cfg.TRAIN.NET_E == '':
-            print('Error: no pretrained text-image encoders')
-            return
+            raise FileNotFoundError('No pretrained text-image encoders. \n'
+                                  + 'Please train the DAMSM first before training the GAN (see README). \n'
+                                  + 'Then specify the path to the trained text encoder in the Style-AttnGAN yaml or cfg.NET_E')
 
         image_encoder = CNN_ENCODER(cfg.TEXT.EMBEDDING_DIM)
         img_encoder_path = cfg.TRAIN.NET_E.replace('text_encoder', 'image_encoder')

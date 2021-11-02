@@ -199,25 +199,21 @@ def build_models( text_encoder_type ):
     # build model ############################################################
     text_encoder_type = text_encoder_type.casefold()
     if text_encoder_type not in ( 'rnn', 'transformer' ):
-      raise ValueError( 'Unsupported text_encoder_type' )
+        raise ValueError( 'Unsupported text_encoder_type' )
 
     if text_encoder_type == 'rnn':
         text_encoder = RNN_ENCODER(dataset.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
-    elif text_encoder_type == 'transformer':
-        # don't initialize the weights of these huge models from scratch...
-        text_encoder = GPT2Model.from_pretrained( TRANSFORMER_ENCODER )
-                                                  # output_hidden_states = True )
     image_encoder = CNN_ENCODER(cfg.TEXT.EMBEDDING_DIM)
 
     labels = Variable(torch.LongTensor(range(batch_size)))
     start_epoch = 0
     if cfg.TRAIN.NET_E:
         if text_encoder_type == 'rnn':
-          state_dict = torch.load(cfg.TRAIN.NET_E)
-          text_encoder.load_state_dict(state_dict)
+            state_dict = torch.load(cfg.TRAIN.NET_E)
+            text_encoder.load_state_dict(state_dict)
         elif  text_encoder_type == 'transformer':
-          text_encoder = GPT2Model.from_pretrained( cfg.TRAIN.NET_E )
-                                                    # output_hidden_states = True )
+            text_encoder = GPT2Model.from_pretrained( cfg.TRAIN.NET_E )
+                                                      # output_hidden_states = True )
         print('Load ', cfg.TRAIN.NET_E)
           #
         name = cfg.TRAIN.NET_E.replace( 'text_encoder', 'image_encoder' )
@@ -230,11 +226,14 @@ def build_models( text_encoder_type ):
         start_epoch = cfg.TRAIN.NET_E[istart:iend]
         start_epoch = int(start_epoch) + 1
     else:
-      if text_encoder_type == 'rnn':
-        print( 'Training RNN from scratch' )
-      elif text_encoder_type == 'transformer':
-        print( 'Training Transformer starting from pretrained model' )
-      print( 'Training CNN starting from ImageNet pretrained Inception-v3' )
+        if text_encoder_type == 'rnn':
+            print( 'Training RNN from scratch' )
+        elif text_encoder_type == 'transformer':
+              # don't initialize the weights of these huge models from scratch...
+            print( 'Training Transformer starting from pretrained model' )
+            text_encoder = GPT2Model.from_pretrained( TRANSFORMER_ENCODER )
+                                                      # output_hidden_states = True )
+        print( 'Training CNN starting from ImageNet pretrained Inception-v3' )
 
     print('start_epoch', start_epoch)
 

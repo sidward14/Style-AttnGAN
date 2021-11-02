@@ -14,8 +14,8 @@ Original AttnGAN paper: [AttnGAN: Fine-Grained Text to Image Generation
 with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/content_cvpr_2018/papers/Xu_AttnGAN_Fine-Grained_Text_CVPR_2018_paper.pdf) by Tao Xu, Pengchuan Zhang, Qiuyuan Huang, Han Zhang, Zhe Gan, Xiaolei Huang, Xiaodong He. (This work was performed when Tao was an intern with Microsoft Research). Thank you for your brilliant work.
 
 <p align="middle">
-  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/framework.png" width="621" height="241"/>
-  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/stylegan-generator.png" width="211" height="241"/>
+  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/framework.png" width="590" height="229"/>
+  <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/stylegan-generator.png" width="200" height="229"/>
 </p>
 
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;*AttnGAN architecture from [arxiv.org/abs/1711.10485](https://arxiv.org/abs/1711.10485)* &emsp;&emsp;&emsp;&emsp;&nbsp; *StyleGAN generator architecture*
@@ -59,7 +59,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 
 **Training**
-- Pre-train DAMSM models:
+- Pre-train DAMSM models (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
   - For bird dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/bird.yml --gpu 0`
   - For coco dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/coco.yml --gpu 0`
  
