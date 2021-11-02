@@ -59,7 +59,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 
 **Training**
-- Pre-train DAMSM models and save best text & image encoders into `DAMSMencoders/` (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
+- Pre-train DAMSM models and then save best text & image encoders into `DAMSMencoders/` and specify the text encoder path in NET_E in the appropriate Style-AttnGAN yaml or in code/miscc/config.py (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
   - For bird dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/bird.yml --gpu 0`
   - For coco dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/coco.yml --gpu 0`
  

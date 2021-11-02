@@ -56,8 +56,7 @@ class condGANTrainer(object):
         # ###################encoders######################################## #
         if cfg.TRAIN.NET_E == '':
             raise FileNotFoundError('No pretrained text encoder found in directory DAMSMencoders/. \n'
-                                  + 'Please train the DAMSM first before training the GAN (see README). \n'
-                                  + 'Then specify the path to the trained text & image encoders in the appropriate Style-AttnGAN yaml or cfg.NET_E')
+                                  + 'Please train the DAMSM first before training the GAN (see README for details).')
 
         image_encoder = CNN_ENCODER(cfg.TEXT.EMBEDDING_DIM)
         img_encoder_path = cfg.TRAIN.NET_E.replace('text_encoder', 'image_encoder')
