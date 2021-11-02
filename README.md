@@ -18,8 +18,8 @@ with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/c
   <img src="https://github.com/sidward14/Style-AttnGAN/raw/master/examples/for_readme/stylegan-generator.png" width="200" height="229"/>
 </p>
 
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;*AttnGAN architecture from [arxiv.org/abs/1711.10485](https://arxiv.org/abs/1711.10485)* &emsp;&emsp;&emsp;&emsp;&nbsp; *StyleGAN generator architecture*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; *from [arxiv.org/abs/1812.04948](https://arxiv.org/abs/1812.04948)* 
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;*AttnGAN architecture from [arxiv.org/abs/1711.10485](https://arxiv.org/abs/1711.10485)* &emsp;&emsp;&emsp;&nbsp; *StyleGAN generator architecture*
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;&nbsp; *from [arxiv.org/abs/1812.04948](https://arxiv.org/abs/1812.04948)* 
 
 ### Copied from LICENSE file (MIT License) for visibility:
 *Copyright for portions of project Style-AttnGAN are held by Tao Xu, 2018 as part of project AttnGAN. All other copyright for project Style-AttnGAN are held by Sidhartha Parhi, 2020. __All non-data files that have not been modified by Sidhartha Parhi include the copyright notice "Copyright (c) 2018 Tao Xu" at the top of the file.__*
@@ -59,7 +59,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 
 **Training**
-- Pre-train DAMSM models (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
+- Pre-train DAMSM models and save best text & image encoders into `DAMSMencoders/` (or skip this step by downloading appropriate DAMSM in the "Pretrained Model" section below):
   - For bird dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/bird.yml --gpu 0`
   - For coco dataset: `python pretrain_DAMSM.py --cfg cfg/DAMSM/coco.yml --gpu 0`
  
@@ -71,14 +71,14 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
   - For bird dataset: `python main.py --cfg cfg/bird_attn2.yml --gpu 0`
   - For coco dataset: `python main.py --cfg cfg/coco_attn2.yml --gpu 0`
 
-- `*.yml` files are example configuration files for training/evaluation our models.
-- User can also optionally set the `--text_encoder_type` flag to `transformer` to use GPT-2 as the text encoder (more text encoder options coming soon).
+- `*.yml` files are example configuration files for training/evaluation models.
+- User can also optionally set the `--text_encoder_type` flag to `transformer` to use GPT-2 as the text encoder (more text encoder options coming soon). If doing so, user must pre-train the DAMSM (see instruction above).
 
 
 
 **Pretrained Model**
-- [DAMSM for bird](https://drive.google.com/open?id=1GNUKjVeyWYBJ8hEU-yrfYQpDOkxEyP3V). Download and save it to `DAMSMencoders/`
-- [DAMSM for coco](https://drive.google.com/open?id=1zIrXCE9F6yfbEJIbNP5-YrEe2pZcPSGJ). Download and save it to `DAMSMencoders/`
+- [DAMSM for bird](https://drive.google.com/open?id=1GNUKjVeyWYBJ8hEU-yrfYQpDOkxEyP3V). Download and save it to `DAMSMencoders/`. Text encoder here is BiLSTM.
+- [DAMSM for coco](https://drive.google.com/open?id=1zIrXCE9F6yfbEJIbNP5-YrEe2pZcPSGJ). Download and save it to `DAMSMencoders/`. Text encoder here is BiLSTM.
 - [Style-AttnGAN for bird](https://drive.google.com/file/d/11Fo003VQJbXK9OBT18PESlP6wqtbaQAo/view?usp=sharing). Download and save it to `models/`
 - [Style-AttnGAN for coco](). Download and save it to `models/`
   - _COMING SOON_
