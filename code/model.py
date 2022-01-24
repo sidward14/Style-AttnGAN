@@ -329,7 +329,9 @@ class CNN_ENCODER(nn.Module):
         return features, cnn_code
 
 
-# ############## G networks ###################
+# ####################################################
+# ################## G networks ######################
+# ####################################################
 class CA_NET(nn.Module):
     # some code is modified from vae examples
     # (https://github.com/pytorch/examples/blob/master/vae/main.py)
@@ -901,9 +903,8 @@ class G_NET_STYLED( nn.Module ):
         if z2_code is None:
             if cfg.GAN.PCT_MIXING_REG:
                 if np.random.rand() < cfg.GAN.PCT_MIXING_REG:
-                    if z2_code is None:
-                        z2_code = gen_rand_latent_vars( num_samples = z_code.shape[0], length = z_code.shape[1],
-                                                        distribution = 'normal', device = z_code.device )
+                    z2_code = gen_rand_latent_vars( num_samples = z_code.shape[0], length = z_code.shape[1],
+                                                    distribution = 'normal', device = z_code.device )
                     w2_code = self.map_net( z2_code, c_code )
                     cutoff_idx = torch.randint( 1, 2*self.final_stage, ( 1, ) ).item()
 
@@ -1044,7 +1045,9 @@ class G_DCGAN(nn.Module):
         return [fake_imgs], att_maps, mu, logvar
 
 
-# ############## D networks ##########################
+# ####################################################
+# ################## D networks ######################
+# ####################################################
 def Block3x3_leakRelu(in_planes, out_planes, ex = False, norm_type = 'batchnorm' ):
     if not ex:
         conv = conv3x3(in_planes, out_planes)

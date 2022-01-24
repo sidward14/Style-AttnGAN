@@ -1,6 +1,6 @@
 # Style-AttnGAN
 
-Pytorch implementation of a modified (styled-based) [AttnGAN](https://arxiv.org/abs/1711.10485) [[code]](https://github.com/taoxugit/AttnGAN) architecture that incorporates the strong latent space control provided by [StyleGAN](https://arxiv.org/abs/1812.04948)*. This architecture enables one to not only synthesize an image from an input text description, but also move that image in a desired disentangled dimension to alter its structure at different scales (from high-level coarse styles such as pose to fine-grained styles such as background lighting).
+PyTorch implementation of a modified (style-based) [AttnGAN](https://arxiv.org/abs/1711.10485) [[code]](https://github.com/taoxugit/AttnGAN) architecture that incorporates the strong latent space control provided by [StyleGAN](https://arxiv.org/abs/1812.04948)*. This architecture enables one to not only synthesize an image from an input text description, but also move that image in a desired disentangled dimension to alter its structure at different scales (from high-level coarse styles such as pose to fine-grained styles such as background lighting).
 
 <p align="center"><b><i>GIF OF LATENT SPACE INTERPOLATION EXAMPLE COMING SOON</i></b></p>
 
@@ -31,7 +31,7 @@ with Attentional Generative Adversarial Networks](http://openaccess.thecvf.com/c
 
 python 3.7+
 
-Pytorch 1.0+
+PyTorch 1.0+
 
 In addition, please add the project folder to PYTHONPATH and `pip install` the following packages (or go `pip install -r requirements.txt`):
 - `python-dateutil`
@@ -181,6 +181,6 @@ If you find the original AttnGAN useful in your research, please consider citing
 - [ ] Implement improvements from StyleGAN2
 - [ ] Analysis with COCO dataset
 - [ ] Implement more options for SOTA transformer architectures as the text encoder (currently only supports GPT-2)
-- [ ] Deploy as a web app that makes it easy to control the specific image one wants to generate
+- [ ] Deploy as an interactive web app that makes it easy to control the specific image one wants to generate
 
 *Improvements from StyleGAN2 coming soon

@@ -37,7 +37,9 @@ def lerp(a, b, t):
 #----------------------------------------------------------------------------
 
 def compute_ppl( algo, space = 'smart', num_samples = 100000, eps = 1e-4, net = 'vgg' ):
-    """Perceptual Path Length"""
+    """Perceptual Path Length: PyTorch implementation of the `PPL` class in
+       https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
+    """
     assert space in ['z', 'w', 'smart']
     assert net in ['vgg', 'alex']
 
