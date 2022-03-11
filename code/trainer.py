@@ -29,12 +29,12 @@ from transformers import GPT2Model
 # ################# Text to image task############################ #
 class condGANTrainer(object):
     def __init__(self, output_dir, data_loader, n_words, ixtoword, text_encoder_type ):
-        if cfg.TRAIN.FLAG:
-            self.output_dir = output_dir
-            self.model_dir = os.path.join(output_dir, 'Model')
-            self.image_dir = os.path.join(output_dir, 'Image')
-            mkdir_p(self.model_dir)
-            mkdir_p(self.image_dir)
+        # if cfg.TRAIN.FLAG:
+        self.output_dir = output_dir
+        self.model_dir = os.path.join(output_dir, 'Model')
+        self.image_dir = os.path.join(output_dir, 'Image')
+        mkdir_p(self.model_dir)
+        mkdir_p(self.image_dir)
 
         torch.cuda.set_device(cfg.GPU_ID)
         cudnn.benchmark = True
@@ -165,50 +165,6 @@ class condGANTrainer(object):
             for i in range(len(netsD)):
                 netsD[i].cuda()
         return [text_encoder, image_encoder, netG, netsD, epoch]
-
-    def build_models_eval(self, init_func = None):
-        # #######################generator########################### #
-        if cfg.GAN.B_DCGAN:
-            netG = G_DCGAN()
-        elif cfg.GAN.B_STYLEGEN:
-            netG = G_NET_STYLED()
-        else:
-            netG = G_NET()
-            if init_func is not None:
-                netG.apply(init_func)
-        # print( netG.__class__ )
-        model_dir = cfg.TRAIN.NET_G  # the path to save generated images
-        try:
-            # state_dict = torch.load(cfg.TRAIN.NET_G)
-            state_dict = torch.load(model_dir, map_location = lambda storage, loc: storage)
-        except:
-            msg = f'The path for the models cfg.TRAIN.NET_G = {cfg.TRAIN.NET_G} is not found'
-            raise ValueError( msg )
-        if cfg.GAN.B_STYLEGEN:
-            # netG.load_state_dict( state_dict )
-            netG.w_ewma = state_dict[ 'w_ewma' ]
-            if cfg.CUDA:
-                netG.w_ewma = netG.w_ewma.to( 'cuda:' + str( cfg.GPU_ID ) )
-            netG.load_state_dict( state_dict[ 'netG_state_dict' ] )
-        else:
-            netG.load_state_dict( state_dict )
-        print('Load G from: ', model_dir)
-        netG.cuda()
-        netG.eval()
-
-        # ###################text encoder########################### #
-        if self.text_encoder_type == 'rnn':
-            text_encoder = RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
-        elif self.text_encoder_type == 'transformer':
-            text_encoder = GPT2Model.from_pretrained( TRANSFORMER_ENCODER )
-        state_dict = \
-            torch.load(cfg.TRAIN.NET_E, map_location=lambda storage, loc: storage)
-        text_encoder.load_state_dict(state_dict)
-        print('Load text encoder from:', cfg.TRAIN.NET_E)
-        text_encoder = text_encoder.cuda()
-        text_encoder.eval()
-
-        return text_encoder, netG
 
     def define_optimizers(self, netG, netsD):
         optimizersD = []
