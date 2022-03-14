@@ -18,6 +18,7 @@ import torchvision.transforms as transforms
 
 import os
 import sys
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -113,7 +114,7 @@ class TextDataset(data.Dataset):
 
         self.data = []
         self.data_dir = data_dir
-        if data_dir.find('birds') != -1:
+        if Path(data_dir).name == 'birds':
             self.bbox = self.load_bbox()
         else:
             self.bbox = None
@@ -318,7 +319,7 @@ class TextDataset(data.Dataset):
             bbox = None
             data_dir = self.data_dir
         #
-        img_name = '%s/images/%s.jpg' % (data_dir, key)
+        img_name = '%s/images/%s.%s' % (data_dir, key, cfg.EXT_IN)
         imgs = get_imgs(img_name, self.imsize,
                         bbox, self.transform, normalize=self.norm)
         # random select a sentence

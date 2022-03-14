@@ -193,7 +193,7 @@ if __name__ == "__main__":
                     data_dir_r = '%s/CUB_200_2011' % dataset.data_dir if dataset.bbox is not None else dataset.data_dir
                     root_dir_r = os.path.join( data_dir_r, 'images' )
                     final_dir_r = os.path.join( root_dir_r, f'{imsize}x{imsize}' )
-                    orig_paths_r, final_paths_r = collapse_dirs( root_dir_r, final_dir_r, copy = True, ext = '.jpg' )
+                    orig_paths_r, final_paths_r = collapse_dirs( root_dir_r, final_dir_r, copy = True, ext = '.' + cfg.EXT_IN )
                     dataset_rsz = ImageFolderDataset( img_paths = final_paths_r,
                                                       transform = image_transform,  # transforms.Compose([transforms.Resize((imsize, imsize,))]),
                                                       save_transformed = True )

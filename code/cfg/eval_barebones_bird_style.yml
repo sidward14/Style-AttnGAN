@@ -1,0 +1,38 @@
+CONFIG_NAME: 'attn2'
+
+EXT_IN: 'jpg'
+EXT_OUT: 'jpg'
+
+DATASET_NAME: 'barebones_birds'
+DATA_DIR: '../data/barebones_birds'
+GPU_ID: 0
+WORKERS: 1
+
+B_VALIDATION: True  # True  # False
+
+B_FID: True  # False
+# B_IS: True  # False
+B_PPL: True  # False
+
+TREE:
+    BRANCH_NUM: 3  # what resolution of generated image to produce
+
+
+TRAIN:
+    FLAG: False
+    NET_G: '../models/barebones_birds_StyleAttnGAN2.pth'
+    B_NET_D: False
+    BATCH_SIZE: 8
+    NET_E: '../DAMSMencoders/barebones_birds/text_encoder200.pth'
+
+
+GAN:
+    DF_DIM: 32  # medium model
+    GF_DIM: 32  # medium model
+    Z_DIM: 100
+    R_NUM: 2
+
+TEXT:
+    EMBEDDING_DIM: 256  # 768 for GPT-2, 256 for the default RNN_ENCODER bi-directional LSTM
+    CAPTIONS_PER_IMAGE: 10
+    WORDS_NUM: 25

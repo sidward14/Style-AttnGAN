@@ -51,7 +51,7 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
 
 **Data**
 
-1. Download preprocessed metadata from taoxugit for [birds](https://drive.google.com/open?id=1O_LtUP9sch09QH3s_EBAgLEctBQ5JBSJ) [coco](https://drive.google.com/open?id=1rSnbIGNDGZeHlsUlLdahj0RJ9oo6lgH9) and save them to `data/
+1. Download preprocessed data from taoxugit for [birds](https://drive.google.com/open?id=1O_LtUP9sch09QH3s_EBAgLEctBQ5JBSJ) [coco](https://drive.google.com/open?id=1rSnbIGNDGZeHlsUlLdahj0RJ9oo6lgH9) and save them to `data/
 2. Unzip `data/birds/text.zip` and/or `data/coco/train2014-text.zip` & `data/coco/val2014-text.zip`
 3. Download the [birds](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) image data. Extract them to `data/birds/`
 4. Download [coco](http://cocodataset.org/#download) dataset and extract the images to `data/coco/`
@@ -110,6 +110,31 @@ In addition, please add the project folder to PYTHONPATH and `pip install` the f
   &emsp;&emsp;&emsp;their corresponding text description. Expressed as a percentage.  
   &emsp;&emsp;&emsp;_CLEANED UP IMPLEMENTATION COMING SOON_
   - To compute Inception Score (IS), use [this repo](https://github.com/hanzhanggit/StackGAN-inception-model) for the birds dataset and [this repo](https://github.com/openai/improved-gan/tree/master/inception_score) for the COCO dataset.
+
+--------------------------------------------------------------------------------
+### Custom Dataset:
+Below are instructions for setting up and training & testing with your own dataset. I use the dataset barebones_birds as an example custom dataset.
+
+**Data**
+- I've included a bare-bones version of the birds dataset above (download link: [barebones_birds](https://drive.google.com/drive/folders/1ez0cviLIvSZV8xspwJ0NYJJvyY5F9lRN?usp=sharing)). Extract it into `data/`. Then, go into `data/barebones_birds` and extract `text.zip` into `text/` and `images.zip` into `images/`.
+
+  - This dataset consists of only images and captions for those images. Use this as an example on how to set up your own custom single-class dataset for training and inference.
+  - Note that this dataset uses jpg. If you want to use some other extension (e.g. png) instead, you need to specify the extension in EXT_IN and EXT_OUT in the 3 YAML files discussed below.
+
+**Training**
+- Pre-train DAMSM:
+  - For your own custom dataset, you will have to pre-train the DAMSM for it. To do so, first you will have to set up the YAML file for it. See `code/cfg/DAMSM/barebones_bird.yml` for an example on how to set that up.
+  - Run `python pretrain_DAMSM.py --cfg cfg/DAMSM/barebones_bird.yml --gpu 0`
+  - After pretraining DAMSM, save best text & image encoders into `DAMSMencoders/`
+
+- Train Style-AttnGAN
+  - Set up the YAML file for Style-AttnGAN training. See `code/cfg/barebones_bird_attn2_style.yml` for an example on how to set that up. Make sure to specify the path to the best text encoder you put in `DAMSMencoders/` for NET_E.
+  - Run `python main.py --cfg cfg/barebones_bird_attn2_style.yml --gpu 0`
+  - The Style-AttnGAN training above will periodicially save your models
+
+**Inference**
+- Set up the YAML file for Style-AttnGAN inference. See `code/cfg/eval_barebones_bird_style.yml` for an example on how to set that up. Make sure to se that same path for NET_E that you used above for barebones_bird_attn2_style.yml, and specify the path to the best Style-AttnGAN for NET_G.
+- After that, follow the instructions in the section above for Sampling and / or Validation, except instead of using evals_bird_style.yml, use eval_barebones_bird_style.yml.
 
 --------------------------------------------------------------------------------
 ### Qualitative performance comparisons on birds dataset (CUB-200-2011):

@@ -392,7 +392,7 @@ class condGANTrainer(object):
                 print('Make a new folder: ', folder)
                 mkdir_p(folder)
 
-            fullpath = '%s_%d.jpg' % (s_tmp, sentenceID)
+            fullpath = '%s_%d.%s' % (s_tmp, sentenceID, cfg.EXT_OUT)
             # range from [-1, 1] to [0, 1]
             # img = (images[i] + 1.0) / 2
             img = images[i].add(1).div(2).mul(255).clamp(0, 255).byte()
