@@ -284,7 +284,7 @@ class TextDataset(data.Dataset):
                 with open(filepath, 'rb') as f:
                     filenames = pickle.load(f)
                 print('Load filenames from: %s (%d)' % (filepath, len(filenames)))
-        elif os.path.file(os.path.join(data_dir, split + '.txt')):
+        elif os.path.isfile(os.path.join(data_dir, split + '.txt')):
             filepath = os.path.join(data_dir, split + '.txt')
             with open(filepath, 'r') as f:
                 filenames = f.readlines()
