@@ -36,15 +36,17 @@ def lerp(a, b, t):
 
 #----------------------------------------------------------------------------
 
-def compute_ppl( algo, space = 'smart', num_samples = 100000, eps = 1e-4, net = 'vgg' ):
-    """Perceptual Path Length"""
+def compute_ppl( evaluator, space = 'smart', num_samples = 100000, eps = 1e-4, net = 'vgg' ):
+    """Perceptual Path Length: PyTorch implementation of the `PPL` class in
+       https://github.com/NVlabs/stylegan/blob/master/metrics/perceptual_path_length.py
+    """
     assert space in ['z', 'w', 'smart']
     assert net in ['vgg', 'alex']
 
     ppl_loss_fn = lpips.LPIPS( net = net, lpips = True )
     ppl_loss_fn.cuda()
 
-    text_encoder, netG = algo.build_models_eval(init_func = weights_init)
+    text_encoder, netG = evaluator.build_models_eval(init_func = weights_init)
     if space == 'smart':
         space = 'w' if cfg.GAN.B_STYLEGEN else 'z'
     if space == 'w':
@@ -54,7 +56,7 @@ def compute_ppl( algo, space = 'smart', num_samples = 100000, eps = 1e-4, net = 
         res_2G = int( np.rint( netG.h_net2.res ) )
         res_3G = int( np.rint( netG.h_net3.res ) )
 
-    batch_size = algo.batch_size
+    batch_size = evaluator.batch_size
     nz = cfg.GAN.Z_DIM
     with torch.no_grad():
         z_code01 = Variable(torch.FloatTensor(batch_size * 2, nz))
@@ -63,14 +65,14 @@ def compute_ppl( algo, space = 'smart', num_samples = 100000, eps = 1e-4, net = 
         t = t.cuda()
 
     ppls = []
-    dl_itr = iter( algo.data_loader )
-    # for step, data in enumerate( algo.data_loader, 0 ):
+    dl_itr = iter( evaluator.data_loader )
+    # for step, data in enumerate( evaluator.data_loader, 0 ):
     pbar = tqdm( range( num_samples // batch_size ), dynamic_ncols = True )
     for step in pbar:
         try:
             data = next( dl_itr )
         except StopIteration:
-            dl_itr = iter( algo.data_loader )
+            dl_itr = iter( evaluator.data_loader )
             data = next( dl_itr )
 
         if step % 100 == 0:
@@ -81,10 +83,10 @@ def compute_ppl( algo, space = 'smart', num_samples = 100000, eps = 1e-4, net = 
         #######################################################
         # (1) Extract text embeddings
         ######################################################
-        if algo.text_encoder_type == 'rnn':
+        if evaluator.text_encoder_type == 'rnn':
             hidden = text_encoder.init_hidden( batch_size )
             words_embs, sent_emb = text_encoder( captions, cap_lens, hidden )
-        elif algo.text_encoder_type == 'transformer':
+        elif evaluator.text_encoder_type == 'transformer':
             words_embs = text_encoder( captions )[0].transpose(1, 2).contiguous()
             sent_emb = words_embs[ :, :, -1 ].contiguous()
         # words_embs: batch_size x nef x seq_len

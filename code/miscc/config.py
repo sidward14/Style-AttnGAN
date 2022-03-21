@@ -13,6 +13,8 @@ cfg = __C
 __C.DATASET_NAME = 'birds'
 __C.CONFIG_NAME = ''
 __C.DATA_DIR = ''
+__C.EXT_IN = 'jpg'
+__C.EXT_OUT = 'jpg'
 __C.GPU_ID = 0
 __C.CUDA = True
 __C.WORKERS = 6
@@ -123,6 +125,6 @@ def cfg_from_file(filename):
     """Load a config file and merge it into the default options."""
     import yaml
     with open(filename, 'r') as f:
-        yaml_cfg = edict(yaml.load(f))
+        yaml_cfg = edict(yaml.load(f, Loader=yaml.CLoader))
 
     _merge_a_into_b(yaml_cfg, __C)

@@ -1,0 +1,42 @@
+CONFIG_NAME: 'attn2'
+
+EXT_IN: 'jpg'
+EXT_OUT: 'jpg'
+
+DATASET_NAME: 'barebones_birds'
+DATA_DIR: '../data/barebones_birds'
+GPU_ID: 0
+WORKERS: 4
+
+
+TREE:
+    BRANCH_NUM: 3  # what final resolution of generated image to train for
+
+
+TRAIN:
+    FLAG: True
+    NET_G: ''  # '../models/bird_StyleAttnGAN2.pth'
+    B_NET_D: True
+    BATCH_SIZE: 10  # 22
+    MAX_EPOCH: 600
+    SNAPSHOT_INTERVAL: 50
+    DISCRIMINATOR_LR: 0.002
+    GENERATOR_LR: 0.002
+    #
+    NET_E: '../DAMSMencoders/barebones_birds/text_encoder200.pth'
+    SMOOTH:
+        GAMMA1: 4.0  # 1,2,5 good 4 best  10&100bad
+        GAMMA2: 5.0
+        GAMMA3: 10.0  # 10good 1&100bad
+        LAMBDA: 5.0
+
+
+GAN:
+    DF_DIM: 32  # medium model
+    GF_DIM: 32  # medium model
+    Z_DIM: 100  # scale with GF_DIM & DF_DIM
+    R_NUM: 2
+
+TEXT:
+    EMBEDDING_DIM: 256  # 768 for GPT-2, 256 for the default RNN_ENCODER bi-directional LSTM
+    CAPTIONS_PER_IMAGE: 10

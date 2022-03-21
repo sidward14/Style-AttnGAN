@@ -18,6 +18,7 @@ import torchvision.transforms as transforms
 
 import os
 import sys
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -113,7 +114,7 @@ class TextDataset(data.Dataset):
 
         self.data = []
         self.data_dir = data_dir
-        if data_dir.find('birds') != -1:
+        if Path(data_dir).name == 'birds':
             self.bbox = self.load_bbox()
         else:
             self.bbox = None
@@ -277,10 +278,17 @@ class TextDataset(data.Dataset):
         return class_id
 
     def load_filenames(self, data_dir, split):
-        filepath = '%s/%s/filenames.pickle' % (data_dir, split)
-        if os.path.isfile(filepath):
-            with open(filepath, 'rb') as f:
-                filenames = pickle.load(f)
+        if os.path.isdir(os.path.join(data_dir, split)):
+            filepath = '%s/%s/filenames.pickle' % (data_dir, split)
+            if os.path.isfile(filepath):
+                with open(filepath, 'rb') as f:
+                    filenames = pickle.load(f)
+                print('Load filenames from: %s (%d)' % (filepath, len(filenames)))
+        elif os.path.isfile(os.path.join(data_dir, split + '.txt')):
+            filepath = os.path.join(data_dir, split + '.txt')
+            with open(filepath, 'r') as f:
+                filenames = f.readlines()
+                filenames = [line.rstrip('\n') for line in filenames]
             print('Load filenames from: %s (%d)' % (filepath, len(filenames)))
         else:
             filenames = []
@@ -318,7 +326,7 @@ class TextDataset(data.Dataset):
             bbox = None
             data_dir = self.data_dir
         #
-        img_name = '%s/images/%s.jpg' % (data_dir, key)
+        img_name = '%s/images/%s.%s' % (data_dir, key, cfg.EXT_IN)
         imgs = get_imgs(img_name, self.imsize,
                         bbox, self.transform, normalize=self.norm)
         # random select a sentence

@@ -3,6 +3,7 @@ easydict
 pandas
 torchfile
 nltk
+pillow
 scikit-image
 pyyaml
 tqdm

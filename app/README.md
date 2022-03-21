@@ -1,5 +1,5 @@
-Copyright (c) 2018 Tao Xu
-
+# This is not ready yet. It will not work yet.
+--------------------------------------------------------------------------------
 # AttnGAN Eval API
 Model evaluation code is extracted here in order to create a separate inference mode for the project. The evaluation code is then embedded into a flask app that accepts API requests. 
 There are two docker files:

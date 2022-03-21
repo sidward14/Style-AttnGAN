@@ -5,7 +5,8 @@ from miscc.config import cfg, cfg_from_file
 from miscc.utils import collapse_dirs, mv_to_paths
 from miscc.metrics import compute_ppl
 from datasets import TextDataset, ImageFolderDataset
-from trainer import condGANTrainer as trainer
+from trainer import condGANTrainer
+from eval import Evaluator
 
 import os
 import sys
@@ -44,7 +45,7 @@ def parse_args():
     return args
 
 
-def gen_example(wordtoix, text_encoder_type, algo):
+def gen_example(wordtoix, text_encoder_type, evaluator):
     '''generate images from example sentences'''
     filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
     data_dic = {}
@@ -97,7 +98,7 @@ def gen_example(wordtoix, text_encoder_type, algo):
                 cap_array[i, :c_len] = cap
             key = name[(name.rfind('/') + 1):]
             data_dic[key] = [cap_array, cap_lens, sorted_indices]
-    algo.gen_example(data_dic)
+    evaluator.gen_example(data_dic)
 
 
 if __name__ == "__main__":
@@ -136,6 +137,7 @@ if __name__ == "__main__":
         split_dir = 'test'
 
     # Get data loader
+    # TODO: Make all data setup a separate module
     imsize = cfg.TREE.BASE_SIZE * (2 ** (cfg.TREE.BRANCH_NUM - 1))
     image_transform = transforms.Compose([
         transforms.Resize(int(imsize * 76 / 64)),
@@ -149,27 +151,29 @@ if __name__ == "__main__":
         dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
         drop_last=True, shuffle=bshuffle, num_workers=int(cfg.WORKERS))
 
-    # Define models and go to train/evaluate
-    algo = trainer(output_dir, dataloader, dataset.n_words, dataset.ixtoword, dataset.text_encoder_type)
-
     start_t = time.time()
     if cfg.TRAIN.FLAG:
+        # Define trainer
+        trainer = condGANTrainer(output_dir, dataloader, dataset.n_words, dataset.ixtoword, dataset.text_encoder_type)
+        # Train
         print( '\nTraining...\n+++++++++++' )
-        algo.train()
+        trainer.train()
         end_t = time.time()
         print('Total time for training:', end_t - start_t)
     else:
+        # Define evaluator
+        evaluator = Evaluator(dataloader, dataset.n_words, dataset.ixtoword, dataset.text_encoder_type)
         # generate images from pre-extracted embeddings
         if not cfg.B_VALIDATION:
-            # generate images for customized captions
+            # generate images for input test set (i.e. custom captions)
             print( '\nRunning on example captions...\n++++++++++++++++++++++++++++++' )
-            root_dir_g = gen_example(dataset.wordtoix, dataset.text_encoder_type, algo)
+            root_dir_g = gen_example(dataset.wordtoix, dataset.text_encoder_type, evaluator)
             end_t = time.time()
             print('Total time for running on example captions:', end_t - start_t)
         else:
             # generate images for the whole valid dataset
             print( '\nValidating...\n+++++++++++++' )
-            root_dir_g = algo.sampling(split_dir)
+            root_dir_g = evaluator.sampling(split_dir)
             end_t = time.time()
             print('Total time for validation:', end_t - start_t)
             print()
@@ -189,7 +193,7 @@ if __name__ == "__main__":
                     data_dir_r = '%s/CUB_200_2011' % dataset.data_dir if dataset.bbox is not None else dataset.data_dir
                     root_dir_r = os.path.join( data_dir_r, 'images' )
                     final_dir_r = os.path.join( root_dir_r, f'{imsize}x{imsize}' )
-                    orig_paths_r, final_paths_r = collapse_dirs( root_dir_r, final_dir_r, copy = True, ext = '.jpg' )
+                    orig_paths_r, final_paths_r = collapse_dirs( root_dir_r, final_dir_r, copy = True, ext = '.' + cfg.EXT_IN )
                     dataset_rsz = ImageFolderDataset( img_paths = final_paths_r,
                                                       transform = image_transform,  # transforms.Compose([transforms.Resize((imsize, imsize,))]),
                                                       save_transformed = True )
@@ -218,7 +222,7 @@ if __name__ == "__main__":
                     print( 'Computing PPL...' )
                     print( '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' )
                     print( f'Number of generated images to be used in PPL calculation: ~{cfg.PPL_NUM_SAMPLES}' )
-                    ppl_value = compute_ppl( algo, space = 'smart', num_samples = cfg.PPL_NUM_SAMPLES, eps = 1e-4, net = 'vgg' )
+                    ppl_value = compute_ppl( evaluator, space = 'smart', num_samples = cfg.PPL_NUM_SAMPLES, eps = 1e-4, net = 'vgg' )
                     with open( os.path.join( final_dir_g, 'metrics.txt' ), 'w' if num_metrics == 0 else 'a' ) as f:
                         f.write( 'Perceptual Path Length (PPL): {:f}\n'.format( ppl_value ) )
                         f.write( 'Root Directories for Datasets used in Calculation: {}\n\n'.format( root_dir_g ) )
